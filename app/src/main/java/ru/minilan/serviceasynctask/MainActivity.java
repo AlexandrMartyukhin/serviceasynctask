@@ -1,11 +1,15 @@
 package ru.minilan.serviceasynctask;
 
+import android.app.PendingIntent;
+import android.content.Intent;
 import android.os.Handler;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -17,22 +21,38 @@ public class MainActivity extends AppCompatActivity {
     //private Handler handler = new Handler();
     TextView textView;
     TextView textView2;
+    EditText editText;
+    TextView textViewTemp;
+    Button button;
+    Button buttonGetWeather;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        viewsFinder();
+        setListeners();
+
+
+    }
+
+    private void viewsFinder() {
         textView = findViewById(R.id.textview);
         textView2 = findViewById(R.id.textview2);
-        Button button = findViewById(R.id.button);
+        button = findViewById(R.id.button);
+        editText = findViewById(R.id.editText);
+        buttonGetWeather = findViewById(R.id.buttonGetWeather);
+        textViewTemp = findViewById(R.id.textViewTemp);
+    }
 
-        button.setOnClickListener(onClickListener);
+    private void setListeners() {
+        button.setOnClickListener(onClickRunTaskListener);
+        buttonGetWeather.setOnClickListener(onClickGetWeatherListener);
     }
 
 
-
-    View.OnClickListener onClickListener = new View.OnClickListener() {
+    View.OnClickListener onClickRunTaskListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             TaskMaker taskMaker = new TaskMaker(new TaskMaker.OnTaskListener() {
@@ -54,4 +74,33 @@ public class MainActivity extends AppCompatActivity {
             taskMaker.createTask(1, 5);
         }
     };
+
+
+    View.OnClickListener onClickGetWeatherListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+
+            PendingIntent pendingIntent = createPendingResult(0, new Intent(), 0);
+            Intent intent = new Intent(MainActivity.this, GetWeatherDataService.class);
+            //String town = editText.getText().toString();
+            intent.putExtra("TOWN", editText.getText().toString());
+            intent.putExtra("PI", pendingIntent);
+            startService(intent);
+
+            Log.i("MyTAG", "town in onClick = " + editText.getText().toString());
+
+
+        }
+    };
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+
+        if (requestCode == 0) {
+            int temp;
+            temp = data.getExtras().getInt("TEMP");
+            textViewTemp.setText(String.valueOf(temp));
+        }
+
+    }
 }
